@@ -7,9 +7,10 @@
 ## add librarys
 library(readr)
 library(ggplot2)
+library(scales)
 
 
-## readin data file
+## read in data file
 
 
 checks <- read_csv("C:/Users/jeffl/OneDrive - Mattress Firm/DB/CheckClearings/qry_CR_00_CLEARED00.csv", 
@@ -19,6 +20,31 @@ CheckDate = col_datetime(format = "%m/%d/%Y %H:%M:%S"),
 CheckNbr = col_character(),
 StatusDate = col_datetime(format = "%m/%d/%Y %H:%M:%S")))
 
+
+## review elements of data
 str(checks)
+
+## summary info for data
 summary(checks)
-plot((checks$Amount_Orig, checks$Days2CLR))
+
+## scatterplot:  Check Amount by Days to Clear
+p1 <-plot(checks$Amount_Orig, checks$Days2CLR,
+          cex = .5,col = "purple",
+          main = "Days to Clear by Check Amount
+          (limited to 60)",
+          ylim=c(0,60),
+          
+          xlab = "Check Amount",
+          ylab= "Days to Clear"
+          )
+
+# Kernel density plots for Days to Clear
+# grouped by number of gears (indicated by color)
+## limiting days 2 clear to 60
+
+qplot(checks$Days2CLR, data=checks, geom="density",
+      fill=checks$ConsGroup, alpha=I(.5), 
+      main="Density: Days to Clear by Group",
+      xlab="Days to Clear",
+      xlim=c(0,60),
+      ylab="Density")
