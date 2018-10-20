@@ -8,7 +8,7 @@
 library(readr)
 library(ggplot2)
 library(scales)
-
+library(plyr)
 
 ## read in data file
 
@@ -27,6 +27,20 @@ str(checks)
 ## summary info for data
 summary(checks)
 
+
+## summary info for days to clear
+summaryL1 <-summary(checks$Days2CLR)
+summaryL1
+
+## quantile for days to clear
+quantL1 <-quantile(checks$Days2CLR)
+quantL1
+
+
+## find std dev for each cons group
+STDDEVL1 <-ddply(checks,.(ConsGroup),colwise(sd))
+STDDEVL1
+
 ## scatterplot:  Check Amount by Days to Clear
 p1 <-plot(checks$Amount_Orig, checks$Days2CLR,
           cex = .5,col = "purple",
@@ -37,14 +51,16 @@ p1 <-plot(checks$Amount_Orig, checks$Days2CLR,
           xlab = "Check Amount",
           ylab= "Days to Clear"
           )
+p1
 
 # Kernel density plots for Days to Clear
 # grouped by number of gears (indicated by color)
 ## limiting days 2 clear to 60
 
-qplot(checks$Days2CLR, data=checks, geom="density",
+p2 <- qplot(checks$Days2CLR, data=checks, geom="density",
       fill=checks$ConsGroup, alpha=I(.5), 
       main="Density: Days to Clear by Group",
       xlab="Days to Clear",
       xlim=c(0,60),
       ylab="Density")
+p2
