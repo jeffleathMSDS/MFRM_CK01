@@ -64,3 +64,25 @@ p2 <- qplot(checks$Days2CLR, data=checks, geom="density",
       xlim=c(0,60),
       ylab="Density")
 p2
+
+
+#find correlations
+# basic scatterplot
+p3 <-ggplot(checks, aes(x=checks$ConsGroup, y=checks$Days2CLR)) + 
+  geom_point()
+p3
+
+p4 <-ggplot(checks, aes(x=checks$Days2CLR, y=checks$ConsGroup)) + 
+  geom_point()
+p4
+
+p5 <-ggplot(checks, aes(x=checks$Amount_Orig, y=checks$Days2CLR)) + 
+  geom_point()
+p5
+
+
+
+# find r
+cor(checks$Amount_Orig, checks$Days2CLR)
+
+
