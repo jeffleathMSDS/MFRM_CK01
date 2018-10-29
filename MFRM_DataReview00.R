@@ -95,6 +95,19 @@ summaryL2d <- ddply(checks2, .(CkDay),
 summaryL2d
 
 
+## summarize check amounts by vendor
+summaryL2cD <- ddply(checks2, .(VendorID),
+                    summarise,
+                    N = length(Amount_Orig),
+                    mean=mean(Amount_Orig),
+                    min=min(Amount_Orig),
+                    max=max(Amount_Orig),
+                    sum=sum(Amount_Orig),
+                    sd   = sd(Amount_Orig),
+                    se   = sd / sqrt(N))
+summaryL2cD
+
+
 ## quantile for days to clear
 quantL1 <-quantile(checks2$Days2CLR)
 quantL1
