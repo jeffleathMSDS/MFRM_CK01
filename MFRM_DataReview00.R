@@ -86,3 +86,10 @@ p5
 cor(checks$Amount_Orig, checks$Days2CLR)
 
 
+# regression code from Stats Ch9
+checklm <- lm(Days2CLR~Amount_Orig, data = checks)
+checklm
+
+summary(checklm)
+
+confint(checklm)
