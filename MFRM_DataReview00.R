@@ -9,6 +9,7 @@ library(readr)
 library(ggplot2)
 library(scales)
 library(plyr)
+library(ddply)
 
 ## read in data file
 
@@ -32,21 +33,80 @@ summary(checks)
 summaryL1 <-summary(checks$Days2CLR)
 summaryL1
 
+
+##historgram
+hist(checks$Days2CLR)
+
+summaryL2AS <- ddply(checks, .(checks$AsOf),
+                    summarise,
+                    N = length(Days2CLR),
+                    mean=mean(Days2CLR),
+                    sum=sum(Days2CLR),
+                    sd   = sd(Days2CLR),
+                    se   = sd / sqrt(N))
+summaryL2AS
+
+## After reviewing the raw data, it is clear there is 'noise' in the data
+# Reviewing the variance of Days to Clear, it is very long tailed (to the right)
+# The outlier data (driven by unusual business circumstances) could skew the forecasted
+# data, which needs to be conservative in nature
+# I will subset the data, to remove outliers, defined as Days to Clear > DC
+
+DC <- summaryL2AS$mean + summaryL2AS$sd*2
+DC
+
+## I will compile the eliminated records in this variable for review
+checksexcluded <-subset(checks, checks$Days2CLR > DC)
+summary(checksexcluded)
+
+
+## Moving forward with a cleaner data set
+checks2 <-subset(checks, checks$Days2CLR < DC)
+summary(checks2)
+
+summaryL1 <-summary(checks2$Days2CLR)
+summaryL1
+
+summaryL2 <- ddply(checks2, .(ConsGroup),
+                    summarise,
+                    N = length(Days2CLR),
+                    mean=mean(Days2CLR),
+                    sum=sum(Days2CLR),
+                    sd   = sd(Days2CLR),
+                    se   = sd / sqrt(N))
+summaryL2
+
+summaryL2v <- ddply(checks2, .(VendorID),
+                    summarise,
+                    N = length(Days2CLR),
+                    mean=mean(Days2CLR),
+                    sum=sum(Days2CLR),
+                    sd   = sd(Days2CLR),
+                    se   = sd / sqrt(N))
+summaryL2v
+
+summaryL2d <- ddply(checks2, .(CkDay),
+                    summarise,
+                    N = length(Days2CLR),
+                    mean=mean(Days2CLR),
+                    sum=sum(Days2CLR),
+                    sd   = sd(Days2CLR),
+                    se   = sd / sqrt(N))
+summaryL2d
+
+
 ## quantile for days to clear
-quantL1 <-quantile(checks$Days2CLR)
+quantL1 <-quantile(checks2$Days2CLR)
 quantL1
 
 
-## find std dev for each cons group
-STDDEVL1 <-ddply(checks,.(ConsGroup),colwise(sd))
-STDDEVL1
 
 ## scatterplot:  Check Amount by Days to Clear
-p1 <-plot(checks$Amount_Orig, checks$Days2CLR,
+p1 <-plot(checks2$Amount_Orig, checks2$Days2CLR,
           cex = .5,col = "purple",
           main = "Days to Clear by Check Amount
-          (limited to 60)",
-          ylim=c(0,60),
+          (P1)",
+          ylim=c(0,DC),
           
           xlab = "Check Amount",
           ylab= "Days to Clear"
@@ -57,37 +117,37 @@ p1
 # grouped by number of gears (indicated by color)
 ## limiting days 2 clear to 60
 
-p2 <- qplot(checks$Days2CLR, data=checks, geom="density",
-      fill=checks$ConsGroup, alpha=I(.5), 
-      main="Density: Days to Clear by Group",
+p2 <- qplot(checks2$Days2CLR, data=checks2, geom="density",
+      fill=checks2$ConsGroup, alpha=I(.5), 
+      main="Density: Days to Clear by Group
+      (P2)",
       xlab="Days to Clear",
-      xlim=c(0,60),
       ylab="Density")
 p2
 
 
 #find correlations
 # basic scatterplot
-p3 <-ggplot(checks, aes(x=checks$ConsGroup, y=checks$Days2CLR)) + 
+p3 <-ggplot(checks2, aes(x=checks2$ConsGroup, y=checks2$Days2CLR)) + 
   geom_point()
 p3
 
-p4 <-ggplot(checks, aes(x=checks$Days2CLR, y=checks$ConsGroup)) + 
+p4 <-ggplot(checks2, aes(x=checks2$Days2CLR, y=checks2$ConsGroup)) + 
   geom_point()
 p4
 
-p5 <-ggplot(checks, aes(x=checks$Amount_Orig, y=checks$Days2CLR)) + 
+p5 <-ggplot(checks2, aes(x=checks2$Amount_Orig, y=checks2$Days2CLR)) + 
   geom_point()
 p5
 
 
 
 # find r
-cor(checks$Amount_Orig, checks$Days2CLR)
+cor(checks2$Amount_Orig, checks2$Days2CLR)
 
 
 # regression code from Stats Ch9
-checklm <- lm(Days2CLR~Amount_Orig, data = checks)
+checklm <- lm(Days2CLR~Amount_Orig, data = checks2)
 checklm
 
 summary(checklm)
