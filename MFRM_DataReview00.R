@@ -1,6 +1,6 @@
 ## Jeff's review of MFRM Check Clearing Data
 ## Sourced from JL Data Lake
-## Check Dates between 3/1/2018 and 10/2/2018
+## 
 ## Only CLEARED Checks
 
 
