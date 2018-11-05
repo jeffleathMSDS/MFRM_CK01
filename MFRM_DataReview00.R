@@ -59,10 +59,20 @@ DC
 checksexcluded <-subset(checks, checks$Days2CLR > DC)
 summary(checksexcluded)
 
+## Export excluded records
+write.table(checksexcluded, file="C:/Users/jeffl/OneDrive - Mattress Firm/DB/CheckClearings/tbl_excluded01.csv",sep=",",row.names=FALSE)
+
+
 
 ## Moving forward with a cleaner data set
 checks2 <-subset(checks, checks$Days2CLR < DC)
 summary(checks2)
+
+## Export Checks2
+write.table(checks2, file="C:/Users/jeffl/OneDrive - Mattress Firm/DB/CheckClearings/tbl_checks2.csv",sep=",",row.names=FALSE)
+
+
+
 
 summaryL1 <-summary(checks2$Days2CLR)
 summaryL1
@@ -143,6 +153,7 @@ p2
 # basic scatterplot
 p3 <-ggplot(checks2, aes(x=checks2$ConsGroup, y=checks2$Days2CLR)) + 
   geom_point()
+
 p3
 
 p4 <-ggplot(checks2, aes(x=checks2$Days2CLR, y=checks2$ConsGroup)) + 
@@ -153,10 +164,15 @@ p5 <-ggplot(checks2, aes(x=checks2$Amount_Orig, y=checks2$Days2CLR)) +
   geom_point()
 p5
 
-
+# One Way Anova (Completely Randomized Design)
+fit <- aov(Days2CLR ~ ConsGroup, data=checks2)
+fit
+plot(fit)
 
 # find r
-cor(checks2$Amount_Orig, checks2$Days2CLR)
+r1 <-cor(checks2$Amount_Orig, checks2$Days2CLR)
+r1
+
 
 
 # regression code from Stats Ch9
