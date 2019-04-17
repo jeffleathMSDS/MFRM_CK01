@@ -11,10 +11,16 @@ library(scales)
 library(plyr)
 library(ddply)
 
+
+
+## set working directory
+
+setwd("H:/AA/MFRM_CK01")
+
+
 ## read in data file
 
-
-checks <- read_csv("C:/Users/jeffl/OneDrive - Mattress Firm/DB/CheckClearings/qry_CR_00_CLEARED00.csv", 
+checks <- read_csv("source/qry_CR_00_CLEARED00.csv", 
 col_types = cols(Amount_Orig = col_double(), 
 AsOf = col_datetime(format = "%m/%d/%Y %H:%M:%S"), 
 CheckDate = col_datetime(format = "%m/%d/%Y %H:%M:%S"), 
@@ -151,10 +157,7 @@ p2
 
 #find correlations
 # basic scatterplot
-p3 <-ggplot(checks2, aes(x=checks2$ConsGroup, y=checks2$Days2CLR)) + 
-  geom_point()
 
-p3
 
 p4 <-ggplot(checks2, aes(x=checks2$Days2CLR, y=checks2$ConsGroup)) + 
   geom_point()
