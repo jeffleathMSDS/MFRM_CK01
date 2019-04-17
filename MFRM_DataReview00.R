@@ -10,6 +10,8 @@ library(ggplot2)
 library(scales)
 library(plyr)
 library(ddply)
+library(dplyr)
+library(tibbletime)
 
 
 
@@ -34,16 +36,24 @@ str(checks)
 ## summary info for data
 summary(checks)
 
+## exclude Checks with Days2Clear <=0
+
+checks2 <-checks %>%
+  filter(Days2CLR > "0")
+  #filter(Days2CLR > "0" & ConsGroup == "Rent" & CheckDate == as.Date("01/01/2019"))
+
+## summary info for data
+summary(checks2)
 
 ## summary info for days to clear
-summaryL1 <-summary(checks$Days2CLR)
+summaryL1 <-summary(checks2$Days2CLR)
 summaryL1
 
 
 ##historgram
-hist(checks$Days2CLR)
+hist(checks2$Days2CLR)
 
-summaryL2AS <- ddply(checks, .(checks$AsOf),
+summaryL2AS <- ddply(checks2, .(checks2$AsOf),
                     summarise,
                     N = length(Days2CLR),
                     mean=mean(Days2CLR),
@@ -62,7 +72,7 @@ DC <- summaryL2AS$mean + summaryL2AS$sd*2
 DC
 
 ## I will compile the eliminated records in this variable for review
-checksexcluded <-subset(checks, checks$Days2CLR > DC)
+checksexcluded <-subset(checks2, checks2$Days2CLR > DC)
 summary(checksexcluded)
 
 ## Export excluded records
@@ -71,19 +81,19 @@ write.table(checksexcluded, file="C:/Users/jeffl/OneDrive - Mattress Firm/DB/Che
 
 
 ## Moving forward with a cleaner data set
-checks2 <-subset(checks, checks$Days2CLR < DC)
-summary(checks2)
+checks3 <-subset(checks, checks$Days2CLR < DC)
+summary(checks3)
 
 ## Export Checks2
-write.table(checks2, file="C:/Users/jeffl/OneDrive - Mattress Firm/DB/CheckClearings/tbl_checks2.csv",sep=",",row.names=FALSE)
+write.table(checks3, file="C:/Users/jeffl/OneDrive - Mattress Firm/DB/CheckClearings/tbl_checks2.csv",sep=",",row.names=FALSE)
 
 
 
 
-summaryL1 <-summary(checks2$Days2CLR)
+summaryL1 <-summary(checks3$Days2CLR)
 summaryL1
 
-summaryL2 <- ddply(checks2, .(ConsGroup),
+summaryL2 <- ddply(checks3, .(ConsGroup),
                     summarise,
                     N = length(Days2CLR),
                     mean=mean(Days2CLR),
@@ -92,7 +102,7 @@ summaryL2 <- ddply(checks2, .(ConsGroup),
                     se   = sd / sqrt(N))
 summaryL2
 
-summaryL2v <- ddply(checks2, .(VendorID),
+summaryL2v <- ddply(checks3, .(VendorID),
                     summarise,
                     N = length(Days2CLR),
                     mean=mean(Days2CLR),
@@ -101,7 +111,7 @@ summaryL2v <- ddply(checks2, .(VendorID),
                     se   = sd / sqrt(N))
 summaryL2v
 
-summaryL2d <- ddply(checks2, .(CkDay),
+summaryL2d <- ddply(checks3, .(CkDay),
                     summarise,
                     N = length(Days2CLR),
                     mean=mean(Days2CLR),
@@ -110,9 +120,18 @@ summaryL2d <- ddply(checks2, .(CkDay),
                     se   = sd / sqrt(N))
 summaryL2d
 
+summaryL2Lg <- ddply(checks3, .(Large),
+                    summarise,
+                    N = length(Days2CLR),
+                    mean=mean(Days2CLR),
+                    sum=sum(Days2CLR),
+                    sd   = sd(Days2CLR),
+                    se   = sd / sqrt(N))
+summaryL2Lg
+
 
 ## summarize check amounts by vendor
-summaryL2cD <- ddply(checks2, .(VendorID),
+summaryL2cD <- ddply(checks3, .(VendorID),
                     summarise,
                     N = length(Amount_Orig),
                     mean=mean(Amount_Orig),
@@ -125,13 +144,13 @@ summaryL2cD
 
 
 ## quantile for days to clear
-quantL1 <-quantile(checks2$Days2CLR)
+quantL1 <-quantile(checks3$Days2CLR)
 quantL1
 
 
 
 ## scatterplot:  Check Amount by Days to Clear
-p1 <-plot(checks2$Amount_Orig, checks2$Days2CLR,
+p1 <-plot(checks3$Amount_Orig, checks3$Days2CLR,
           cex = .5,col = "purple",
           main = "Days to Clear by Check Amount
           (P1)",
@@ -146,8 +165,8 @@ p1
 # grouped by number of gears (indicated by color)
 ## limiting days 2 clear to 60
 
-p2 <- qplot(checks2$Days2CLR, data=checks2, geom="density",
-      fill=checks2$ConsGroup, alpha=I(.5), 
+p2 <- qplot(checks3$Days2CLR, data=checks3, geom="density",
+      fill=checks3$ConsGroup, alpha=I(.5), 
       main="Density: Days to Clear by Group
       (P2)",
       xlab="Days to Clear",
@@ -159,29 +178,40 @@ p2
 # basic scatterplot
 
 
-p4 <-ggplot(checks2, aes(x=checks2$Days2CLR, y=checks2$ConsGroup)) + 
+p4 <-ggplot(checks3, aes(x=checks3$Days2CLR, y=checks3$ConsGroup)) + 
   geom_point()
 p4
 
-p5 <-ggplot(checks2, aes(x=checks2$Amount_Orig, y=checks2$Days2CLR)) + 
+p5 <-ggplot(checks3, aes(x=checks3$Amount_Orig, y=checks3$Days2CLR)) + 
   geom_point()
 p5
 
 # One Way Anova (Completely Randomized Design)
-fit <- aov(Days2CLR ~ ConsGroup, data=checks2)
+fit <- aov(Days2CLR ~ ConsGroup, data=checks3)
 fit
 plot(fit)
 
 # find r
-r1 <-cor(checks2$Amount_Orig, checks2$Days2CLR)
+r1 <-cor(checks3$Amount_Orig, checks3$Days2CLR)
 r1
 
 
 
-# regression code from Stats Ch9
-checklm <- lm(Days2CLR~Amount_Orig, data = checks2)
+# regression test1
+checklm <- lm(Days2CLR~AD+CA+Co+DI+EM+ME+OT+OV+PA+PR+RE+SU+TA+Large, data = checks3)
 checklm
-
 summary(checklm)
-
 confint(checklm)
+
+# regression test2
+checklm2 <- lm(Days2CLR~DI+EM+ME+OT+OV+RE+TA+Large, data = checks3)
+checklm2
+summary(checklm2)
+confint(checklm2)
+
+
+# regression test3
+checklm3 <- lm(Days2CLR~DI+EM+ME+OT+RE+TA+Large, data = checks3)
+checklm3
+summary(checklm3)
+confint(checklm3)
