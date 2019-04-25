@@ -2,16 +2,19 @@
 ## Sourced from JL Data Lake
 ## 
 ## Only CLEARED Checks
-## Need to change source data
+## 
 
-## add librarys
-library(readr)
-library(ggplot2)
-library(scales)
-library(plyr)
-library(ddply)
-library(dplyr)
-library(tibbletime)
+## load librarys
+library(readr) #import data
+library(ggplot2) # viz
+library(scales) # viz
+library(dplyr) # data handling in df
+library(tibble) # data frame handling
+library(tibbletime) # time formatting addon to tibble
+library(DAAG) # Model Cross Validation, unique package
+library(MASS) # Stepwise Regression, unique package
+library(leaps) # Regression Subset Selection
+library(car) # Companion to Applie Regression
 
 
 ##
@@ -191,6 +194,7 @@ fit <- aov(Days2CLR ~ ConsGroup, data=checks3)
 fit
 plot(fit)
 
+
 # find r
 r1 <-cor(checks3$Amount_Orig, checks3$Days2CLR)
 r1
@@ -202,6 +206,17 @@ checklm <- lm(Days2CLR~AD+CA+Co+DI+EM+ME+OT+OV+PA+PR+RE+SU+TA+Large, data = chec
 checklm
 summary(checklm)
 confint(checklm)
+coefficients(checklm)
+fitted(checklm)
+residuals(checklm)
+anova(checklm)
+vcov(checklm)
+influence(checklm)
+
+# diagnostic plots 
+layout(matrix(c(1,2,3,4),2,2)) # optional 4 graphs/page 
+plot(checklm)
+
 
 # regression test2
 checklm2 <- lm(Days2CLR~DI+EM+ME+OT+OV+RE+TA+Large, data = checks3)
@@ -215,3 +230,29 @@ checklm3 <- lm(Days2CLR~DI+EM+ME+OT+RE+TA+Large, data = checks3)
 checklm3
 summary(checklm3)
 confint(checklm3)
+
+
+# compare models
+fit1 <- checklm
+fit2 <- checklm3
+anova(fit1, fit2)
+
+# K-fold cross-validation
+cv.lm(checks3, checklm, m=3) # 3 fold cross-validation
+
+# Stepwise Regression
+fit <- lm(Days2CLR~AD+CA+Co+DI+EM+ME+OT+OV+PA+PR+RE+SU+TA+Large, data = checks3)
+step <- stepAIC(fit, direction="both")
+step$anova # display results
+
+# All Subsets Regression
+attach(checks3)
+leaps<-regsubsets(Days2CLR~AD+CA+Co+DI+EM+ME+OT+OV+PA+PR+RE+SU+TA+Large, data = checks3,nbest=10)
+# view results 
+summary(leaps)
+# plot a table of models showing variables in each model.
+# models are ordered by the selection statistic.
+plot(leaps,scale="r2")
+# plot statistic by subset size 
+library(car)
+subsets(leaps, statistic="rsq")
