@@ -16,6 +16,7 @@ library(DAAG) # Model Cross Validation, unique package
 library(MASS) # Stepwise Regression, unique package
 library(leaps) # Regression Subset Selection
 library(car) # Companion to Applie Regression
+library(caret) # model accuracy testing
 
 
 ##
@@ -270,4 +271,12 @@ train_ind <- sample(seq_len(nrow(checks3)), size = smp_size)
 
 train <- checks3[train_ind,]
 test <- checks3[-train_ind,]
+
+
+##define training control
+train_control <-trainControl(method = "boot", 100)
+# train the model
+model <-train(Days2CLR~., data = checks3, trControl=train_control, method="nb")
+#summarize results
+print(model)
 
