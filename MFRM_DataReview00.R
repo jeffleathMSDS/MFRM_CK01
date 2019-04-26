@@ -9,6 +9,7 @@ library(readr) #import data
 library(ggplot2) # viz
 library(scales) # viz
 library(dplyr) # data handling in df
+library(plyr)
 library(tibble) # data frame handling
 library(tibbletime) # time formatting addon to tibble
 library(DAAG) # Model Cross Validation, unique package
@@ -254,5 +255,19 @@ summary(leaps)
 # models are ordered by the selection statistic.
 plot(leaps,scale="r2")
 # plot statistic by subset size 
-library(car)
 subsets(leaps, statistic="rsq")
+
+## Test and Train
+
+#sample size
+
+smp_size <- floor(0.75 * nrow(checks3))
+smp_size
+
+## set the seed to make your partition reproducible
+set.seed(7)
+train_ind <- sample(seq_len(nrow(checks3)), size = smp_size)
+
+train <- checks3[train_ind,]
+test <- checks3[-train_ind,]
+
